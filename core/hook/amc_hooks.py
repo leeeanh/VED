@@ -95,7 +95,7 @@ class AMCEvaluateHook(EvaluateHook):
                 test_psnr = test_psnr.tolist()
                 score = score.tolist()
                 psnrs[test_counter+frame_num-1]=test_psnr
-                scores[test_counter+frame_num-1] = scorte
+                scores[test_counter+frame_num-1] = score
                 test_counter += 1
 
                 if sn == random_video_sn and (frame_sn in vis_range):
