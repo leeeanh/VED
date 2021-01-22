@@ -47,7 +47,7 @@ class COMemAEEvaluateHook(EvaluateHook):
                                      num_workers=1)
             scores = [0.0 for i in range(len_dataset)]
 
-            for test_data, anno, meta in data_loader:
+            for data, anno, meta in data_loader:
                 # get data
                 past_test = data[:, :, 0, :, :].cuda()
                 present_test = data[:, :, 1, :, :].cuda()

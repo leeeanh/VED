@@ -51,6 +51,10 @@ class Trainer(DefaultTrainer):
 
         self.test_dataset_keys = self.kwargs['test_dataset_keys']
         self.test_dataset_dict = self.kwargs['test_dataset_dict']
+        self.test_dataset_keys_w = self.kwargs['test_dataset_keys_w']
+        self.test_dataset_dict_w = self.kwargs['test_dataset_dict_w']
+
+
 
     def train(self, current_step):
         # Pytorch [N, C, D, H, W]
