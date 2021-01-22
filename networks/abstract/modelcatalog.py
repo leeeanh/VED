@@ -24,7 +24,7 @@ class ModelCatalog(object):
             name (str): the name that identifies a dataset, e.g. "coco_2014_train".
             func (callable): a callable which takes no arguments and returns a list of dicts.
         """
-        assert callable(func), "You must register a function with `DatasetCatalog.register`!"
+        assert callable(func), "You must register a function with `ModelCatalog.register`!"
         assert name not in ModelCatalog._REGISTERED, "Model '{}' is already registered!".format(
             name
         )

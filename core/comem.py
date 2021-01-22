@@ -42,6 +42,12 @@ class Trainer(DefaultTrainer):
 
         # basic meter
         self.loss_meter_CoMemAe = AverageMeter(name='loss_comemae')
+        self.loss_meter_pred = AverageMeter(name='loss_pred')
+        self.loss_meter_flow = AverageMeter(name='loss_flow')
+        self.loss_meter_motion_comp = AverageMeter(name='loss_motion_comp')
+        self.loss_meter_app_comp = AverageMeter(name='loss_app_comp')
+        self.loss_meter_motion_sep = AverageMeter(name='loss_motion_sep')
+        self.loss_meter_app_sep = AverageMeter(name='loss_app_sep')
 
         self.test_dataset_keys = self.kwargs['test_dataset_keys']
         self.test_dataset_dict = self.kwargs['test_dataset_dict']
@@ -99,7 +105,16 @@ class Trainer(DefaultTrainer):
         self.optim_CoMemAE.zero_grad()
         loss_all.backward()
         self.optim_CoMemAE.step()
+
+        # Update meter loss
         self.loss_meter_CoMemAe.update(loss_all.detach())
+        self.loss_meter_pred.update(loss_pred.detach())
+        self.loss_meter_flow.update(loss_motion.detach())
+        self.loss_meter_motion_comp.update(motion_compactness_loss.detach() * self.loss_lamada['motion_compactness_loss'])
+        self.loss_meter_app_comp.update(app_compactness_loss.detach() * self.loss_lamada['app_compactness_loss'])
+        self.loss_meter_motion_sep.update(motion_separateness_loss.detach() * self.loss_lamada['motion_separateness_loss'])
+        self.loss_meter_app_sep.update(app_separateness_loss.detach() * self.loss_lamada['app_separateness_loss'])
+
 
         if self.config.TRAIN.adversarial.scheduler.use:
             self.lr_comemae.step()
@@ -112,7 +127,13 @@ class Trainer(DefaultTrainer):
             msg = make_info_message(current_step, self.steps.param['max'],
                                     self.kwargs['model_type'], self.batch_time,
                                     self.config.TRAIN.batch_size,
-                                    self.data_time, [self.loss_meter_CoMemAe])
+                                    self.data_time, [self.loss_meter_CoMemAe,
+                                                     self.loss_meter_pred,
+                                                     self.loss_meter_flow,
+                                                     self.loss_meter_motion_sep,
+                                                     self.loss_meter_motion_sep,
+                                                     self.loss_meter_app_sep,
+                                                     self.loss_meter_app_comp])
             self.logger.info(msg)
         writer.add_scalar('Train_loss_CoMemAE', self.loss_meter_CoMemAe.val,
                           global_steps)
@@ -157,10 +178,11 @@ class Trainer(DefaultTrainer):
             past = data[:, :, 0, :, :].cuda()  # t-1 frame
 
             inputs = torch.cat([past, current], dim=1)
+
             # Run model
             motion_output, _, _, _, motion_softmax_score_query, motion_softmax_score_memory, \
-            motion_separateness_loss, motion_compactness_loss , app_output, _, _, _, \
-            app_softmax_score_query, app_softmax_score_memory, app_separateness_loss, \
+            motion_compactness_loss , app_output, _, _, _, \
+            app_softmax_score_query, app_softmax_score_memory, \
             app_compactness_loss = self.CoMemAE(inputs, train=False)
 
             # Run optical flow estimated
@@ -172,7 +194,7 @@ class Trainer(DefaultTrainer):
             output_format=self.config.DATASET.optical_format)
 
             frame_psnr_mini = psnr_error(app_output.detach(), future)
-            flow_psnr_mini = psnr_error(motion_output.detach(), future)
+            flow_psnr_mini = psnr_error(motion_output.detach(), flow_gt)
             temp_meter_frame.update(frame_psnr_mini.detach())
             temp_meter_flow.update(flow_psnr_mini.detach())
 

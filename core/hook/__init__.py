@@ -6,6 +6,7 @@ from .base import get_base_hooks
 from .memae_hooks import get_memae_hooks
 from .ocae_hooks import get_ocae_hooks
 from .stae_hooks import get_stae_hooks
+from .comem_hooks import get_comem_hooks
 
 from .hooks_api import HookAPI
 
@@ -21,5 +22,7 @@ def register_hooks():
     HookCatalog.register('oc.OCEvaluateHook', lambda name:get_ocae_hooks(name))
     HookCatalog.register('stae.STAEEvaluateHook', lambda name:get_stae_hooks(name))
     HookCatalog.register('memae.MemAEEvaluateHook', lambda name:get_memae_hooks(name))
+    HookCatalog.register('comem.COMemAEEvaluateHook', lambda name:get_comem_hooks(name))
+
 
 register_hooks()

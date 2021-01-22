@@ -32,7 +32,7 @@ class L2Loss(nn.Module):
     def __init__(self, eps=1e-8):
         super(L2Loss, self).__init__()
         self.eps = eps
-    
+
     def forward(self, gen, gt):
         error = torch.mean((gen - gt)**2)
         x = torch.sqrt(error + self.eps)
@@ -55,7 +55,7 @@ class GradientLoss(nn.Module):
         # channels = gen_frames.size(1)
         channels = 3
         pos = torch.tensor(np.identity(channels), dtype=torch.float32)
-        neg = (-1 * pos) + 1 -1 
+        neg = (-1 * pos) + 1 -1
         self.alpha = 1
         self.filter_x = torch.unsqueeze(torch.stack([neg, pos], dim=0), 0).permute(2,3,0,1).cuda()        # c_out, c_in, h, w
         self.filter_y = torch.stack([torch.unsqueeze(neg, dim=0), torch.unsqueeze(pos, dim=0)]).permute(2,3,0,1).cuda()
@@ -67,7 +67,7 @@ class GradientLoss(nn.Module):
         gen_frames_y = torch.nn.ZeroPad2d((0,0,1,0))(gen_frames)
         gt_frames_x = torch.nn.ZeroPad2d((1,0,0,0))(gt_frames)
         gt_frames_y = torch.nn.ZeroPad2d((0,0,1,0))(gt_frames)
-        
+
         gen_dx = torch.abs(torch.nn.functional.conv2d(gen_frames_x, self.filter_x))
         gen_dy = torch.abs(torch.nn.functional.conv2d(gen_frames_y, self.filter_y))
         gt_dx = torch.abs(torch.nn.functional.conv2d(gt_frames_x, self.filter_x))
@@ -96,18 +96,18 @@ class AMCDiscriminateLoss1(nn.Module):
     def __init__(self):
         super(AMCDiscriminateLoss1, self).__init__()
         self.t1 = nn.BCELoss()
-        
+
     def forward(self, outputs, labels):
-        loss  = self.t1(outputs, labels) 
+        loss  = self.t1(outputs, labels)
         return loss
 
 class AMCDiscriminateLoss2(nn.Module):
     def __init__(self):
         super(AMCDiscriminateLoss2, self).__init__()
         self.t1 = nn.BCELoss()
-        
+
     def forward(self, outputs, labels):
-        loss  = self.t1(outputs, labels) 
+        loss  = self.t1(outputs, labels)
         return loss
 
 class AMCGenerateLoss(nn.Module):
@@ -191,7 +191,7 @@ class GANLoss(nn.Module):
 class WeightedPredLoss(nn.Module):
     def __init__(self):
         super(WeightedPredLoss, self).__init__()
-    
+
     def forward(self, x, target):
         error = 0
         pred_len = target.shape[2]
@@ -201,7 +201,7 @@ class WeightedPredLoss(nn.Module):
             error += item
         # error /= pred_len ** 2
         # import ipdb; ipdb.set_trace()
-        
+
         error /= pred_len ** 2
         return error
 
@@ -226,6 +226,10 @@ LOSSDICT ={
     'C_loss': IntensityLoss().cuda(),
     # 'rec_loss': nn.MSELoss(reduction='mean').cuda(),
     'rec_loss': L2Loss().cuda(),
+    'motion_compactness_loss': L2Loss().cuda(),
+    'app_compactness_loss': L2Loss().cuda(),
+    'motion_separateness_loss': L2Loss().cuda(),
+    'app_separateness_loss': L2Loss().cuda(),
     'weighted_pred_loss': WeightedPredLoss().cuda()
 }
 

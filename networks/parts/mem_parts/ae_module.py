@@ -114,7 +114,12 @@ class Decoder(torch.nn.Module):
                                          output_padding=1),
                 torch.nn.BatchNorm2d(intOutput), torch.nn.ReLU(inplace=False))
 
-        self.moduleConv = Basic(1024, 512)
+        if networks_type == 'appearance':
+            self.moduleConv = Basic(2048, 512)
+        else:
+            self.moduleConv = Basic(1024, 512)
+
+        #self.moduleConv = Basic(1024, 512)
         self.moduleUpsample4 = Upsample(512, 256)
 
         self.moduleDeconv3 = Basic(512, 256)
@@ -124,9 +129,9 @@ class Decoder(torch.nn.Module):
         self.moduleUpsample2 = Upsample(128, 64)
 
         if networks_type == 'appearance':
-            self.moduleDeconv1 = Gen(128, n_channel, 64)
+            self.moduleDeconv1 = Gen(128, n_channels, 64)
         else:
-            self.moduleDeconv1 = Gen(128, 2*(t_channel-1), 64)
+            self.moduleDeconv1 = Gen(128, 2*(t_length-1), 64)
 
     def forward(self, x, skip1, skip2, skip3):
 

@@ -1,6 +1,6 @@
 import time
 import weakref
-from pyanomaly.core.hook.abstract.abstract_hook import HookBase
+from core.hook.abstract.abstract_hook import HookBase
 
 class AbstractTrainer(object):
     def __init__(self, *args, **kwargs):
@@ -36,12 +36,12 @@ class AbstractTrainer(object):
             # See http://engineering.hearsaysocial.com/2013/06/16/circular-references-in-python/
             h.trainer = weakref.proxy(self)
         self._hooks.extend(hooks)
-    
+
     def set_requires_grad(self, nets, requires_grad=False):
         '''
         Parameters:
             nets(list) --- a list of networks
-            requores_grad(bool) --- whether the networks require gradients or not  
+            requores_grad(bool) --- whether the networks require gradients or not
         '''
         if not isinstance(nets, list):
             nets = [nets]
@@ -66,7 +66,7 @@ class AbstractTrainer(object):
         the single step of training the model
         '''
         pass
-    
+
     def before_step(self, current_step):
         '''
         the fucntion before step
@@ -84,7 +84,7 @@ class AbstractTrainer(object):
         the fucntion before train function
         '''
         pass
-    
+
     def after_train(self):
         '''
         the function after train fucntion
@@ -101,13 +101,13 @@ class AbstractInference(object):
         set up the whole inference
         '''
         pass
-    
+
     def _get_time(self):
         '''
         Get the current time
         '''
         return time.strftime('%Y-%m-%d-%H-%M') # 2019-08-07-10-34
-    
+
     def _register_hooks(self, hooks):
         """
         Register hooks to the trainer. The hooks are executed in the order
@@ -124,12 +124,12 @@ class AbstractInference(object):
             # See http://engineering.hearsaysocial.com/2013/06/16/circular-references-in-python/
             h.trainer = weakref.proxy(self)
         self._hooks.extend(hooks)
-    
+
     def set_requires_grad(self, nets, requires_grad=False):
         '''
         Parameters:
             nets(list) --- a list of networks
-            requores_grad(bool) --- whether the networks require gradients or not  
+            requores_grad(bool) --- whether the networks require gradients or not
         '''
         if not isinstance(nets, list):
             nets = [nets]
@@ -144,7 +144,7 @@ class AbstractInference(object):
         self.before_inference()
         self.inference()
         self.after_inference()
-    
+
     def before_inference(self):
         pass
 

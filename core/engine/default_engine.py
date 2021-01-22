@@ -1,5 +1,5 @@
 import torch
-from pyanomaly.core.utils import AverageMeter, ParamSet
+from core.utils import AverageMeter, ParamSet
 from .utils import engine_save_checkpoint
 from .utils import engine_save_model
 from .abstract import AbstractTrainer, AbstractInference
@@ -10,8 +10,8 @@ class DefaultTrainer(AbstractTrainer):
         Args:
             defaults(tuple): the default will have:
                 0->model:{'Generator':net_g, 'Driscriminator':net_d, 'FlowNet':net_flow}
-                1->train_dataloader: the dataloader   
-                2->val_dataloader: the dataloader     
+                1->train_dataloader: the dataloader
+                2->val_dataloader: the dataloader
                 3->optimizer:{'optimizer_g':op_g, 'optimizer_d'}
                 4->loss_function: {'g_adverserial_loss':.., 'd_adverserial_loss':..., 'gradient_loss':.., 'opticalflow_loss':.., 'intentsity_loss':.. }
                 5->logger: the logger of the whole training process
@@ -33,7 +33,7 @@ class DefaultTrainer(AbstractTrainer):
         self.config = defaults[6]
 
         self.model = defaults[0]
-        
+
         if kwargs['pretrain']:
             self.load_pretrain()
 
@@ -60,34 +60,34 @@ class DefaultTrainer(AbstractTrainer):
         self.result_path = ''
         self.kwargs = kwargs
 
-        self.normalize = ParamSet(name='normalize', 
-                                  train={'use':self.config.ARGUMENT.train.normal.use, 'mean':self.config.ARGUMENT.train.normal.mean, 'std':self.config.ARGUMENT.train.normal.std}, 
+        self.normalize = ParamSet(name='normalize',
+                                  train={'use':self.config.ARGUMENT.train.normal.use, 'mean':self.config.ARGUMENT.train.normal.mean, 'std':self.config.ARGUMENT.train.normal.std},
                                   val={'use':self.config.ARGUMENT.val.normal.use, 'mean':self.config.ARGUMENT.val.normal.mean, 'std':self.config.ARGUMENT.val.normal.std})
 
-        self.steps = ParamSet(name='steps', log=self.config.TRAIN.log_step, vis=self.config.TRAIN.vis_step, eval=self.config.TRAIN.eval_step, save=self.config.TRAIN.save_step, 
+        self.steps = ParamSet(name='steps', log=self.config.TRAIN.log_step, vis=self.config.TRAIN.vis_step, eval=self.config.TRAIN.eval_step, save=self.config.TRAIN.save_step,
                               max=self.config.TRAIN.max_steps, mini_eval=self.config.TRAIN.mini_eval_step, dynamic_steps=self.config.TRAIN.dynamic_steps)
 
         self.evaluate_function = kwargs['evaluate_function']
-        
+
         # hypyer-parameters of loss
         self.loss_lamada = kwargs['loss_lamada']
 
         # the lr scheduler
         self.lr_scheduler_dict = kwargs['lr_scheduler_dict']
-        
+
         self.custom_setup()
 
         if self.config.RESUME.flag:
             # self.resume()
             pass
-        
+
         if self.config.FINETUNE.flag:
             self.fine_tune()
-        
-    
+
+
     def custom_setup(self):
         raise Exception('Not implement the custom setup')
-    
+
     def load_pretrain(self):
         model_path = self.config.MODEL.pretrain_model
         if  model_path is '':
@@ -102,7 +102,7 @@ class DefaultTrainer(AbstractTrainer):
                 self.logger.info('(+_+) ==> Use the model file')
                 self.model.load_state_dict(pretrain_model['state_dict'])
 
-    
+
     def resume(self):
         self.logger.info('=> Resume the previous training')
         checkpoint_path = self.config.RESUME.checkpoint_path
@@ -111,7 +111,7 @@ class DefaultTrainer(AbstractTrainer):
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
-    
+
     def fine_tune(self):
         layer_list = self.config.FINETUNE.layer_list
         self.logger.info('=> Freeze layers except start with:{}'.format(layer_list))
@@ -129,7 +129,7 @@ class DefaultTrainer(AbstractTrainer):
                 if p.requires_grad:
                     print(n)
         self.logger.info('Finish Setting freeze layers')
-    
+
     def data_parallel(self, model):
         '''
         Data parallel the model
@@ -138,7 +138,7 @@ class DefaultTrainer(AbstractTrainer):
         gpus = [int(i) for i in range(self.config.SYSTEM.num_gpus)]
         model_parallel = torch.nn.DataParallel(model.cuda(), device_ids=gpus)
         return model_parallel
-    
+
     '''
     Run the whole process:
     1. print the log information ( before_step)
@@ -147,32 +147,32 @@ class DefaultTrainer(AbstractTrainer):
                                                    |  --> (after_step)
     4. save model                                  -
     '''
-    
+
     def before_step(self, current_step):
         pass
 
-    
+
     def after_step(self, current_step):
         # acc = 0.0
         for h in self._hooks:
             h.after_step(current_step)
-        
+
         if (current_step % self.steps.param['mini_eval'] == 0) or current_step == 0:
             self.mini_eval(current_step)
             # return
 
-    
+
     def after_train(self):
         for h in self._hooks:
             h.after_train()
-        
+
         self.save(self.config.TRAIN.max_steps)
 
     def save(self, current_epoch, best=False):
         '''
         self.saved_model: is the model or a dict of combination of models
         self.saved_optimizer: is the optimizer or a dict of combination of optimizers
-        self.saved_loss: the loss  or a dict of the combination  of loss 
+        self.saved_loss: the loss  or a dict of the combination  of loss
         '''
         if best:
             engine_save_checkpoint(self.config, self.kwargs['config_name'], self.saved_model, current_epoch, self.saved_loss, self.saved_optimizer, self.logger, self.kwargs['time_stamp'], self.accuarcy, flag='best', verbose=(self.kwargs['model_type'] + '#' + self.verbose),best=best)
@@ -180,11 +180,11 @@ class DefaultTrainer(AbstractTrainer):
         else:
             engine_save_checkpoint(self.config, self.kwargs['config_name'], self.saved_model, current_epoch, self.saved_loss, self.saved_optimizer, self.logger, self.kwargs['time_stamp'], self.accuarcy, verbose=(self.kwargs['model_type'] + '#' + self.verbose), best=best)
 
-    
-    
+
+
     def train(self,current_step):
         raise Exception('Need to implement the train function!!')
-    
+
     def evaluate(self, current_step):
         '''
         Evaluate the results of the model
@@ -192,12 +192,12 @@ class DefaultTrainer(AbstractTrainer):
         !!! Or can call other methods written by the official
 
         Returns:
-            metric: the metric 
+            metric: the metric
         '''
         raise Exception('Need to implement the evaluation function, return the score')
-    
-        
- 
+
+
+
 class DefaultInference(AbstractInference):
     '''__init__ template
     '''
@@ -223,14 +223,14 @@ class DefaultInference(AbstractInference):
         self.model_path = defaults[1]
 
         self.save_model = torch.load(self.model_path)
-        
+
         self.model = defaults[0]
 
         self.verbose = kwargs['verbose']
         self.kwargs = kwargs
         self.config_name = kwargs['config_name']
-        self.normalize = ParamSet(name='normalize', 
-                                  train={'use':self.config.ARGUMENT.train.normal.use, 'mean':self.config.ARGUMENT.train.normal.mean, 'std':self.config.ARGUMENT.train.normal.std}, 
+        self.normalize = ParamSet(name='normalize',
+                                  train={'use':self.config.ARGUMENT.train.normal.use, 'mean':self.config.ARGUMENT.train.normal.mean, 'std':self.config.ARGUMENT.train.normal.std},
                                   val={'use':self.config.ARGUMENT.val.normal.use, 'mean':self.config.ARGUMENT.val.normal.mean, 'std':self.config.ARGUMENT.val.normal.std})
 
         self.evaluate_function = kwargs['evaluate_function']
@@ -259,7 +259,7 @@ class DefaultInference(AbstractInference):
         gpus = [int(i) for i in self.config.SYSTEM.gpus]
         model_parallel = torch.nn.DataParallel(model, device_ids=gpus).cuda()
         return model_parallel
-    
+
     def inference(self, current_step):
         # if self.mode == 'dataset':
         #     metric = self.evaluate()
@@ -268,16 +268,16 @@ class DefaultInference(AbstractInference):
         # else:
         #     raise Exception('Wrong inference mode')
         pass
-    
 
-    
+
+
     def get_result(self):
         '''
         Get the results for one image
-        
+
         '''
         raise Exception('Need to implement the get_result function, return the score')
-    
+
     def extract_feature(self):
         '''
         Get the feature of input

@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from collections import OrderedDict
+import torchsnooper
 from .mem_parts.mem_module import Memory
 from .mem_parts.ae_module import Encoder, Decoder
 
@@ -32,12 +34,12 @@ class CoMemAE(nn.Module):
         self.motion_memory = Memory(motion_memory, feature_dim, key_dim,
                                     temp_update, temp_gather)
 
+    # @torchsnooper.snoop()
     def forward(self, x, train=True):
         # Seprate input data x into motion block input branch and appeareance
         # input image
-        # TODO: Code sepreate input
         app_input = x[:, -self.n_channel:, :, :]
-        motion_input = x[:, :-self.n_channel, :, :]
+        motion_input = x
         # Motion branch encoder
         motion_fea, motion_skip1, motion_skip2, motion_skip3 = self.motion_encoder(
                                                                 motion_input)
@@ -60,35 +62,35 @@ class CoMemAE(nn.Module):
             app_output = self.app_decoder(app_updated_fea, app_skip1,
                                           app_skip2, app_skip3)
 
-            return motion_output, motion_fea, motion_updated_fea, motion_keys,
-            motion_softmax_score_query, motion_softmax_score_memory, motion_separateness_loss,
-            motion_compactness_loss , app_output, app_fea, app_updated_fea, app_keys,
-            app_softmax_score_query, app_softmax_score_memory, app_separateness_loss,
+            return motion_output, motion_fea, motion_updated_fea, motion_keys,\
+            motion_softmax_score_query, motion_softmax_score_memory, motion_separateness_loss,\
+            motion_compactness_loss , app_output, app_fea, app_updated_fea, app_keys,\
+            app_softmax_score_query, app_softmax_score_memory, app_separateness_loss,\
             app_compactness_loss
 
         else:
             # Motion memory
-            motion_updated_fea, motion_keys, motion_softmax_score_query, motion_softmax_score_memory, motion_separateness_loss, motion_compactness_loss = self.motion_memory(
+            motion_updated_fea, motion_keys, motion_softmax_score_query, motion_softmax_score_memory, _, _, _, motion_compactness_loss = self.motion_memory(
                 motion_fea, train)
             motion_output = self.motion_decoder(motion_updated_fea,
                                                 motion_skip1, motion_skip2,
                                                 motion_skip3)
 
             # Appeareance branch memory
-            app_updated_fea, app_keys, app_softmax_score_query, app_softmax_score_memory, app_separateness_loss, app_compactness_loss = self.app_memory(
+            app_updated_fea, app_keys, app_softmax_score_query, app_softmax_score_memory, _, _, _, app_compactness_loss = self.app_memory(
                 app_fea, train)
 
             app_updated_fea = torch.cat([motion_updated_fea, app_updated_fea], dim=1)
             app_output = self.app_decoder(app_updated_fea, app_skip1,
                                           app_skip2, app_skip3)
 
-            return motion_output, motion_fea, motion_updated_fea, motion_keys,
-            motion_softmax_score_query, motion_softmax_score_memory, motion_separateness_loss,
-            motion_compactness_loss , app_output, app_fea, app_updated_fea, app_keys,
-            app_softmax_score_query, app_softmax_score_memory, app_separateness_loss,
+            return motion_output, motion_fea, motion_updated_fea, motion_keys,\
+            motion_softmax_score_query, motion_softmax_score_memory, \
+            motion_compactness_loss , app_output, app_fea, app_updated_fea, app_keys,\
+            app_softmax_score_query, app_softmax_score_memory, \
             app_compactness_loss
 
-def get_model_comemae(cfg):
+def get_model_comem(cfg):
     if cfg.ARGUMENT.train.normal.use:
         rgb_max = 1.0
     else:
@@ -108,7 +110,7 @@ def get_model_comemae(cfg):
         raise Exception('Not support optical flow methods')
 
     model_dict = OrderedDict()
-    model_dict['MemAE'] = CoMemAE(n_channel=cfg.DATASET.channel_num)
+    model_dict['CoMemAE'] = CoMemAE(n_channel=cfg.DATASET.channel_num)
     model_dict['FlowNet'] = flow_model
 
     return model_dict

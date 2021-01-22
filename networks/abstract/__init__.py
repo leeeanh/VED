@@ -6,6 +6,7 @@ from ..parts.anopcn_networks import get_model_anopcn
 from ..parts.amc_networks import get_model_amc
 from ..parts.ocae_networks import get_model_ocae
 from ..parts.stae_networks import get_model_stae
+from ..parts.comem_networks import get_model_comem
 # from ..parts.ae_baseline_netowrks import get_model_ae_baseline
 # from ..parts.gan_baseline_networks import get_model_gan_baseline
 # from ..parts.srnn_networks import get_model_srnn
@@ -36,6 +37,7 @@ def register_models():
     # ModelCatalog.register('ltr', lambda cfg: get_model_ltr(cfg))
     # ModelCatalog.register('lsa', lambda cfg: get_model_lsa(cfg))
     # ModelCatalog.register('itae', lambda cfg: get_model_itae(cfg))
+    ModelCatalog.register('comem', lambda cfg: get_model_comem(cfg))
 
 
 register_models()

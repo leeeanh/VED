@@ -1,0 +1,179 @@
+SYSTEM:
+  multigpus: false
+  num_gpus: 1
+  gpus: [0]
+  cudnn:
+    benchmark: false
+    deterministic: true
+    enable: true
+  distributed:
+    use: false
+LOG:
+  log_output_dir: './output/log'
+  tb_output_dir: './output/tensorboard'
+  vis_dir: './output/vis'
+  
+DATASET:
+  name: 'ped2'
+  seed: 2021
+  read_format: 'opencv'
+  image_format: 'jpg'
+  channel_num: 3
+  channel_name: 'rgb'
+  train_path: './data/ped2/training/frames'
+  train_clip_length: 3
+  train_sampled_clip_length: 3
+  train_frame_step: 1
+  train_clip_step: 1
+  test_path: './data/ped2/testing/frames'
+  test_clip_length: 3
+  test_sampled_clip_length: 3
+  test_frame_step: 1
+  test_clip_step: 1
+  gt_path: './data/ped2'
+  number_of_class: 1
+  score_normalize: false
+  score_type: 'abnormal'
+  decidable_idx: 0
+  decidable_idx_back: 16
+  smooth:
+    guassian: true
+    guassian_sigma: [3,5,15,10,20,30]
+  mini_dataset:
+    samples: 100
+  evaluate_function_type: 'compute_auc_score'
+ARGUMENT:
+  train:
+    use: true
+    resize:
+      use: true
+      height: 256
+      width: 256
+    grayscale:
+      use: false
+    normal:
+      use: true
+      mean: [0.5, 0.5, 0.5]
+      std: [0.5, 0.5, 0.5]
+    fliplr:
+      use: true
+      p: 0.5
+    flipud:
+      use: true
+      p: 0.5
+    rote:
+      use: false
+      degrees: [10,10]
+    JpegCompression:
+      use: false
+      high: 100
+      low: 80
+    GaussianBlur:
+      use: false
+      high: 0.3
+      low: 0.03
+    CropToFixedSize:
+      use: false
+      height: 128
+      width: 128
+      position: 'center'
+  val:
+    use: true
+    resize:
+      use: true
+      height: 256
+      width: 256
+    grayscale:
+      use: false
+    normal:
+      use: true
+      mean: [0.5, 0.5, 0.5]
+      std: [0.5, 0.5, 0.5]
+    fliplr:
+      use: false
+      p: 0.5
+    flipud:
+      use: false
+      p: 0.5
+    rote:
+      use: false
+      degrees: [10,10]
+    JpegCompression:
+      use: false
+      high: 100
+      low: 80
+    GaussianBlur:
+      use: false
+      high: 0.3
+      low: 0.03
+    CropToFixedSize:
+      use: false
+      height: 256
+      width: 256
+      position: 'center'
+MODEL:
+  name: 'comem'
+  type: 'comem'
+  hooks:
+    train: ['comem.COMemAEEvaluateHook', 'base.VisScoreHook']
+    val: ['comem.COMemAEEvaluateHook']
+  flownet: 'liteflownet'
+  flow_model_path: './pretrained_model/liteflownet/network-sintel.pytorch'
+  discriminator_channels: []
+  pretrain_model: ''
+  detector_config: ''
+  detector_model_path: ''
+RESUME:
+  flag: false
+  checkpoint_path: ''
+FINETUNE:
+  flag: false
+  layer_list: []
+TRAIN:
+  batch_size: 1
+  start_step: 0
+  max_steps: 127600
+  log_step: 100
+  vis_step: 638
+  mini_eval_step: 500
+  eval_step: 638
+  save_step: 638
+  epochs: 1
+  # loss: ['rec_loss']
+  loss: ['rec_loss', 'opticalflow_loss', 'motion_compactness_loss', 'motion_separateness_loss', 'app_compactness_loss', 'app_separateness_loss'] 
+  loss_coefficients: [1, 1, 0.1, 0.1, 0.1, 0.1]
+  mode: 'general'
+  general:
+    optimizer:
+      include: ['CoMemAE']
+      name: 'adam'
+      lr: 1e-3
+      momentum: 0.9
+      weight_decay: 0.1
+      nesterov: false
+      output_name: ['optimizer_comemae']
+    scheduler:
+      use: true
+      name: 'MultiStepLR'
+      step_size: 1000
+      steps: [63800, 127600]
+      gamma: 0.1
+      T_max: 6380
+      eta_min: 0
+      warmup_factor: 0.001
+      warmup_iters: 1276
+      warmup_method: 'linear'
+  split: ''
+  model_output: './output/models'
+  checkpoint_output: './output/checkpoint'
+  pusedo_data_path: ''
+  cluster:
+    k: 10
+VAL:
+  name: ''
+  path: ''
+  batch_size: 2
+TEST:
+  name: ''
+  path: ''
+  result_output: './output/results'
