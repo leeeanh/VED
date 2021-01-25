@@ -35,7 +35,7 @@ class Trainer(DefaultTrainer):
 
         # get the loss_fucntion
         self.pred_loss = self.loss_function['rec_loss']
-        self.op_loss = self.loss_function['opticalflow_loss']
+        self.op_loss = self.loss_function['opticalflow_loss_sqrt']
 
         # the lr scheduler
         self.lr_comemae = self.lr_scheduler_dict['optimizer_comemae_scheduler']
@@ -81,7 +81,8 @@ class Trainer(DefaultTrainer):
         input_data = data.cuda()
 
         # True Process =================Start===================
-        inputs = torch.cat([past, current], 1)
+        import ipdb; ipdb.set_trace()
+        inputs = torch.cat([past, current], 1).cuda()
 
         # run our model
         motion_output, _, _, _, motion_softmax_score_query, motion_softmax_score_memory, \

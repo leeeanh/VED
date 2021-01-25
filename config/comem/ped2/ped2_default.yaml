@@ -140,7 +140,7 @@ TRAIN:
   save_step: 638
   epochs: 1
   # loss: ['rec_loss']
-  loss: ['rec_loss', 'opticalflow_loss', 'motion_compactness_loss', 'motion_separateness_loss', 'app_compactness_loss', 'app_separateness_loss'] 
+  loss: ['rec_loss', 'opticalflow_loss_sqrt', 'motion_compactness_loss', 'motion_separateness_loss', 'app_compactness_loss', 'app_separateness_loss'] 
   loss_coefficients: [1, 1, 0.1, 0.1, 0.1, 0.1]
   mode: 'general'
   general:
