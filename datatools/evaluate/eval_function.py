@@ -149,7 +149,7 @@ def calculate_psnr(loss_file, logger, cfg):
 
 def compute_auc_psnr(loss_file, logger, cfg, score_type='normal'):
     '''
-    For psnr, score_type is always 'normal', means that the higher PSNR, the higher normality 
+    For psnr, score_type is always 'normal', means that the higher PSNR, the higher normality
     '''
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
@@ -168,7 +168,7 @@ def compute_auc_psnr(loss_file, logger, cfg, score_type='normal'):
 
         scores = np.array([], dtype=np.float32)
         labels = np.array([], dtype=np.int8)
-        
+
         # video normalization
         for i in range(num_videos):
             distance = psnr_records[i]
@@ -214,20 +214,20 @@ def compute_auc_score(loss_file, logger, cfg, score_type='normal'):
             score_one_video = np.clip(score_one_video, 0, None)
             scores = np.concatenate((scores, score_one_video[DECIDABLE_IDX:l-DECIDABLE_IDX_BACK]), axis=0)
             labels = np.concatenate((labels, gt[i][DECIDABLE_IDX:l-DECIDABLE_IDX_BACK]), axis=0)
-        
+
         fpr, tpr, thresholds = metrics.roc_curve(labels, scores, pos_label=pos_label)
         auc = metrics.auc(fpr, tpr)
         results = RecordResult(fpr, tpr, thresholds, auc, dataset, sub_loss_file, sigma)
 
         return results
-        
+
     if score_type == 'normal':
         pos_label = 0
     elif score_type == 'abnormal':
         pos_label =1
     else:
         raise Exception('Error in score_type')
-    
+
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
     else:
@@ -236,7 +236,7 @@ def compute_auc_score(loss_file, logger, cfg, score_type='normal'):
 
     optimal_results = RecordResult()
     DECIDABLE_IDX = cfg.DATASET.decidable_idx
-    DECIDABLE_IDX_BACK = cfg.DATASET.decidable_idx
+    DECIDABLE_IDX_BACK = cfg.DATASET.decidable_idx_BACK
     for sub_loss_file in loss_file_list:
         # the name of dataset, loss, and ground truth
         dataset, psnr_records, score_records, gt, num_videos = load_pickle_results(loss_file=sub_loss_file, cfg=cfg)
@@ -245,7 +245,7 @@ def compute_auc_score(loss_file, logger, cfg, score_type='normal'):
 
         # scores = np.array([], dtype=np.float32)
         # labels = np.array([], dtype=np.int8)
-        
+
         # # video normalization
         # for i in range(num_videos):
         #     score_one_video = score_records[i]
@@ -298,7 +298,7 @@ Functions for testing the evaluation functions
 '''
 def evaluate(eval_type, save_file, logger, cfg):
     assert eval_type in eval_functions, f'there is no type of evaluation {eval_type}, please check {eval_functions.keys()}'
-    
+
     eval_func = eval_functions[eval_type]
     optimal_results = eval_func(save_file, logger, cfg)
     return optimal_results

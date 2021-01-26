@@ -166,9 +166,9 @@ class Trainer(DefaultTrainer):
         start = time.time()
 
         # save model
-        self.saved_model = {'MemAE': self.CoMemAE}
-        self.saved_optimizer = {'optim_MemAE': self.optim_CoMemAE}
-        self.saved_loss = {'loss_MemAE': self.loss_meter_CoMemAe.val}
+        self.saved_model = {'CoMemAE': self.CoMemAE}
+        self.saved_optimizer = {'optim_CoMemAE': self.optim_CoMemAE}
+        self.saved_loss = {'loss_CoMemAE': self.loss_meter_CoMemAe.val}
         self.kwargs['writer_dict']['global_steps_{}'.format(self.kwargs['model_type'])] = global_steps
 
     def mini_eval(self, current_step):
@@ -212,11 +212,15 @@ class Inference(DefaultInference):
         if self.kwargs['parallel']:
             self.CoMemAE = self.data_parallel(self.model['CoMemAE']).load_state_dict(self.save_model['CoMemAE'])
         else:
-            self.MemAE = self.model['CoMemAE'].cuda()
-            self.MemAE.load_state_dict(self.save_model['CoMemAE'])
+            self.CoMemAE = self.model['CoMemAE'].cuda()
+            self.flownet = self.model['FlowNet'].cuda()
+            self.CoMemAE.load_state_dict(self.save_model['CoMemAE'])
 
         self.test_dataset_keys = self.kwargs['test_dataset_keys']
         self.test_dataset_dict = self.kwargs['test_dataset_dict']
+
+        self.test_dataset_keys_w = self.kwargs['test_dataset_keys_w']
+        self.test_dataset_dict_w = self.kwargs['test_dataset_dict_w']
 
 
     def inference(self):

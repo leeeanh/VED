@@ -14,27 +14,27 @@ LOG:
   vis_dir: './output/vis'
   
 DATASET:
-  name: 'ped2'
+  name: 'avenue'
   seed: 2021
   read_format: 'opencv'
-  image_format: 'jpg'
   channel_num: 3
   channel_name: 'rgb'
-  train_path: './data/ped2/training/frames'
+  optical_format: 'Y'
+  train_path: './data/Avenue/training/frames'
   train_clip_length: 3
   train_sampled_clip_length: 3
   train_frame_step: 1
   train_clip_step: 1
-  test_path: './data/ped2/testing/frames'
+  test_path: './data/Avenue/testing/frames'
   test_clip_length: 3
   test_sampled_clip_length: 3
   test_frame_step: 1
   test_clip_step: 1
-  gt_path: './data/ped2'
+  gt_path: './data/Avenue'
   number_of_class: 1
   score_normalize: false
   score_type: 'abnormal'
-  decidable_idx: 1
+  decidable_idx: 3
   decidable_idx_back: 0
   smooth:
     guassian: true
@@ -74,8 +74,8 @@ ARGUMENT:
       low: 0.03
     CropToFixedSize:
       use: false
-      height: 128
-      width: 128
+      height: 256
+      width: 256
       position: 'center'
   val:
     use: true

@@ -24,19 +24,19 @@ class MemoryModule3D(nn.Module):
         self.cos_similarity = nn.CosineSimilarity(dim=2, )
 
         self._init_weights()
-    
+
     def _init_weights(self):
         nn.init.kaiming_uniform_(self.memory)
-    
+
     def hard_shrink_relu(self, input, lambd=0, epsilon=1e-15):
         output = (F.relu(input-lambd) * input) / (torch.abs(input - lambd) + epsilon)
         return output
-    
+
     # @torchsnooper.snoop()
     def forward(self, z):
         with torch.autograd.set_detect_anomaly(True):
             N, C, D, H, W = z.size() # C=256
-            z = z.permute(0, 2, 3, 4, 1) 
+            z = z.permute(0, 2, 3, 4, 1)
             z = z.reshape(-1, C) # [N*D*H*W, C]
             ex_mem = self.memory.unsqueeze(0).repeat(z.shape[0], 1, 1) # the shape of memory is to be [N*D*H*W, M, C]
             ex_z = z.unsqueeze(1).repeat(1,self.mem_dim, 1) # ex_z is to be [N*D*H*W, M, C]
@@ -46,13 +46,13 @@ class MemoryModule3D(nn.Module):
                 w_hat = self.hard_shrink_relu(w, lambd=self.shrink_thres)
             else:
                 w_hat = F.relu(w)
-            
+
             w_hat = F.normalize(w_hat, p=1, dim=0)
             mem_trans = self.memory.permute(1,0)
             z_hat = F.linear(w_hat, mem_trans)
             z_output = z_hat.reshape(N,D,H,W,C).permute(0,4,1,2,3)
             return z_output, w_hat
-        
+
 
 
 class AutoEncoderCov3DMem(nn.Module):
@@ -91,14 +91,14 @@ class AutoEncoderCov3DMem(nn.Module):
         )
 
         self._init_weights()
-    
+
     def _init_weights(self):
         for m in self.modules():
             if isinstance(m, nn.Conv3d):
                 m.weight = nn.init.kaiming_normal_(m.weight, mode='fan_out')
             if isinstance(m, nn.ConvTranspose3d):
                 m.weight = nn.init.kaiming_normal_(m.weight, mode='fan_out')
-    
+
     def forward(self, x):
         f = self.encoder(x)
         z_hat, w_hat = self.mem_rep(f)
@@ -110,4 +110,4 @@ class AutoEncoderCov3DMem(nn.Module):
 def get_model_memae(cfg):
     model_dict = OrderedDict()
     model_dict['MemAE'] = AutoEncoderCov3DMem(cfg.DATASET.channel_num, 2000)
-    return model_dict
+
