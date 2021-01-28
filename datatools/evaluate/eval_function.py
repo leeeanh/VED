@@ -236,7 +236,7 @@ def compute_auc_score(loss_file, logger, cfg, score_type='normal'):
 
     optimal_results = RecordResult()
     DECIDABLE_IDX = cfg.DATASET.decidable_idx
-    DECIDABLE_IDX_BACK = cfg.DATASET.decidable_idx_BACK
+    DECIDABLE_IDX_BACK = cfg.DATASET.decidable_idx_back
     for sub_loss_file in loss_file_list:
         # the name of dataset, loss, and ground truth
         dataset, psnr_records, score_records, gt, num_videos = load_pickle_results(loss_file=sub_loss_file, cfg=cfg)
