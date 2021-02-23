@@ -1,8 +1,10 @@
 import torch
 import torch.optim as optim
 from collections import OrderedDict
+import torch_optimizer
+
 class OptimizerAPI(object):
-    _SUPPROT = ['adam', 'sgd']
+    _SUPPROT = ['adam', 'sgd', 'adabelief']
     _NAME = 'OptimizerAPI'
     def __init__(self, cfg, logger):
         self.cfg = cfg
@@ -15,7 +17,7 @@ class OptimizerAPI(object):
         elif self.train_mode == 'adversarial':
             self.type = self.cfg.TRAIN.adversarial.optimizer.name
             self.params = self.cfg.TRAIN.adversarial.optimizer
-            self.lr = 0        
+            self.lr = 0
         self.setup()
 
     def setup(self):
@@ -36,9 +38,11 @@ class OptimizerAPI(object):
             t = torch.optim.Adam(model.parameters(), lr=self.lr, betas=self.params.betas, weight_decay=self.params.weight_decay)
         elif self.type == 'sgd':
             t = torch.optim.SGD(model.parameters(), lr=self.lr, momentum=self.params.momentum, weight_decay=self.params.weight_decay,nesterov=self.params.nesterov)
+        elif self.type == 'adabelief':
+            t = torch_optimizer.AdaBelief(model.parameters(), lr=self.lr, betas=self.params.betas, weight_decay=self.params.weight_decay)
 
         return t
-    
+
     def _build_multi_optimizers(self, model_list):
         param_groups = list()
 
@@ -46,15 +50,19 @@ class OptimizerAPI(object):
             raise Exception(f'Not support: {self.type} in {OptimizerAPI._NAME}')
         elif self.type == 'adam':
             for model in model_list:
-                param_groups.append({'params':model.parameters()}) 
+                param_groups.append({'params':model.parameters()})
             t = torch.optim.Adam(param_groups, lr=self.lr, betas=self.params.betas, weight_decay=self.params.weight_decay)
         elif self.type == 'sgd':
             for model in model_list:
-                param_groups.append({'params':model.parameters()}) 
+                param_groups.append({'params':model.parameters()})
             t = torch.optim.SGD(model.parameters(), lr=self.lr, momentum=self.params.momentum, weight_decay=self.params.weight_decay,nesterov=self.params.nesterov)
-        
+        elif self.type == 'adabelief':
+            for model in model_list:
+                param_groups.append({'params':model.parameters()})
+            t = torch_optimizer.AdaBelief(model.parameters(), lr=self.lr, betas=self.params.betas, weight_decay=self.params.weight_decay)
+
         return t
-    
+
     def _build(self, model):
         if isinstance(model, torch.nn.Module):
             self.logger.info('Build the optimizer for one model')
@@ -63,7 +71,7 @@ class OptimizerAPI(object):
             self.logger.info('Build the optimizer for multi models')
             opimizer = self._build_multi_optimizers(model)
         return opimizer
-    
+
     def __call__(self, model):
         include_parts = self.params.include
         output_names = self.params.output_name

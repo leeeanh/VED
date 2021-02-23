@@ -20,17 +20,17 @@ DATASET:
   channel_num: 3
   channel_name: 'rgb'
   optical_format: 'Y'
-  train_path: './data/Avenue/training/frames'
+  train_path: './data/avenue/training/frames'
   train_clip_length: 3
   train_sampled_clip_length: 3
   train_frame_step: 1
   train_clip_step: 1
-  test_path: './data/Avenue/testing/frames'
+  test_path: './data/avenue/testing/frames'
   test_clip_length: 3
   test_sampled_clip_length: 3
   test_frame_step: 1
   test_clip_step: 1
-  gt_path: './data/Avenue'
+  gt_path: './data/avenue'
   number_of_class: 1
   score_normalize: false
   score_type: 'abnormal'
@@ -117,8 +117,8 @@ MODEL:
   hooks:
     train: ['comem.COMemAEEvaluateHook', 'base.VisScoreHook']
     val: ['comem.COMemAEEvaluateHook']
-  flownet: 'liteflownet'
-  flow_model_path: './pretrained_model/liteflownet/network-sintel.pytorch'
+  flownet: 'flownet2'
+  flow_model_path: './pretrained_model/flownet2/FlowNet2_checkpoint.pth.tar'
   discriminator_channels: []
   pretrain_model: ''
   detector_config: ''
